@@ -1,0 +1,18 @@
+# Ambiente Virtual (Python)
+.venv/
+venv/
+ENV/
+
+# Pastas de Build e Distribuição
+build/
+dist/
+*.egg-info/
+
+# Caches do Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Configurações locais do VS Code (opcional, mas recomendado)
+.vscode/
