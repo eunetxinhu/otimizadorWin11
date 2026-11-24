@@ -1,0 +1,14 @@
+# Só configuração de ferramentas (o app não é distribuído como pacote pip).
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = ["eunetxinhu-otimizacoes.spec"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B", "UP"]
+ignore = ["B008", "UP042"]
