@@ -1,2 +1,2 @@
-customtkinter>=5.2.0
-pywin32>=306
+customtkinter>=5.2.2,<7
+pywin32>=306; sys_platform == "win32"

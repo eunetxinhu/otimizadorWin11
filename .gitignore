@@ -16,3 +16,7 @@ __pycache__/
 
 # Configurações locais do VS Code (opcional, mas recomendado)
 .vscode/
+
+# Ferramentas de teste/lint
+.pytest_cache/
+.ruff_cache/

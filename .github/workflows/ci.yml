@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    name: Testes (Linux, Python ${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Dependências
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q xvfb
+          pip install -r requirements-dev.txt
+      - name: Lint
+        run: ruff check .
+      - name: Testes (com interface via Xvfb)
+        run: xvfb-run -a python -m pytest -v
+
+  windows:
+    name: Testes e build (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Dependências
+        run: pip install -r requirements-dev.txt
+      - name: Ambiente
+        run: python -c "import ctypes, platform; print(platform.platform(), 'admin =', bool(ctypes.windll.shell32.IsUserAnAdmin()))"
+      - name: Testes (unitários + integração com o Windows real)
+        run: python -m pytest -v -s
+      - name: Autoteste do app (código-fonte)
+        run: python main.py --self-test
+      - name: Gerar .exe
+        run: pyinstaller --noconfirm eunetxinhu-otimizacoes.spec
+      - name: Autoteste do .exe
+        shell: pwsh
+        run: |
+          $log = "$env:LOCALAPPDATA\EunetxinhuOtimizacoes\logs\app.log"
+          if (Test-Path $log) { Remove-Item $log }
+          $p = Start-Process -FilePath dist\eunetxinhu-otimizacoes.exe -ArgumentList '--self-test' -Wait -PassThru
+          Get-Content $log
+          if ($p.ExitCode -ne 0) { throw "Autoteste do .exe falhou (código $($p.ExitCode))" }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: eunetxinhu-otimizacoes-exe
+          path: dist/eunetxinhu-otimizacoes.exe
+          retention-days: 30
