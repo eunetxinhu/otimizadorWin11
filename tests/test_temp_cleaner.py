@@ -27,6 +27,13 @@ class FakeRecycleBin:
         return self.empty_ok
 
 
+def symlink_or_skip(target, link, is_dir=False):
+    try:
+        os.symlink(target, link, target_is_directory=is_dir)
+    except (OSError, NotImplementedError) as exc:  # Windows sem privilégio de criar symlink
+        pytest.skip(f"symlink indisponível: {exc}")
+
+
 def write(path, size=10, age_days=None, now=None):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(b"x" * size)
@@ -92,8 +99,8 @@ def test_never_follows_directory_links_out_of_the_folder(tmp_path, now):
     precioso = write(documentos / "tese.docx", 999)
     write(temp / "lixo.tmp", 1)
     temp.mkdir(exist_ok=True)
-    os.symlink(documentos, temp / "atalho_para_documentos", target_is_directory=True)
-    os.symlink(precioso, temp / "link_arquivo.docx")
+    symlink_or_skip(documentos, temp / "atalho_para_documentos", is_dir=True)
+    symlink_or_skip(precioso, temp / "link_arquivo.docx")
 
     svc = service([temp_category(temp)], now)
     assert svc.scan(["user_temp"])["user_temp"].files == 1
@@ -182,7 +189,7 @@ def test_default_categories_dedupe_and_skip_missing(tmp_path):
     (local / "Microsoft" / "Windows" / "Explorer").mkdir(parents=True)
     windir = tmp_path / "Windows"
     (windir / "Prefetch").mkdir(parents=True)
-    os.symlink(local / "Temp", tmp_path / "TEMP~1", target_is_directory=True)  # "nome curto"
+    symlink_or_skip(local / "Temp", tmp_path / "TEMP~1", is_dir=True)  # "nome curto"
     env = {
         "LOCALAPPDATA": str(local),
         "TEMP": str(tmp_path / "TEMP~1"),

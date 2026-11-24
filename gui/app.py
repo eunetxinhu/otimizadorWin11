@@ -147,6 +147,13 @@ class OtimizacoesApp(ctk.CTk):
     def destroy(self) -> None:
         if hasattr(self, "runner"):
             self.runner.stop()
+        # Cancela callbacks "after" pendentes (do customtkinter, por exemplo) para o
+        # Tcl não reclamar de "invalid command name" depois que a janela some.
+        try:
+            for after_id in self.tk.splitlist(self.tk.call("after", "info")):
+                self.after_cancel(after_id)
+        except Exception:
+            pass
         super().destroy()
 
     # ------------------------------------------------------------ navegação

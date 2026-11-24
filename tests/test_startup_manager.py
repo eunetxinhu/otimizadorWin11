@@ -68,11 +68,12 @@ def test_lists_all_sources_with_real_state(reg, folders):
 
 
 def test_flags_items_whose_executable_no_longer_exists(reg, folders):
+    reg.set_value(HKCU, RUN_KEY_PATH, "Relativo", "rundll32.exe shell32.dll,Control_RunDLL")
     existing = {r"C:\Users\u\AppData\Local\Discord\Update.exe"}
     items = by_name(make(reg, folders, existing).get_startup_items())
     assert items["Antigo"].target_missing
     assert not items["Discord"].target_missing
-    assert not items["SecurityHealth"].target_missing  # %windir% não resolvido -> não afirma nada
+    assert not items["Relativo"].target_missing  # caminho relativo (PATH): não dá para afirmar
 
 
 @pytest.mark.parametrize("source,hive,subkey", [
